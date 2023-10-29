@@ -1,5 +1,5 @@
 {
-  "name": "@hatkom/prisma-generator-flavoured-ids",
+  "name": "prisma-generator-flavoured-ids",
   "author": "Vladyslav Zavalykhatko",
   "description": "Provide a description about your generator",
   "main": "./dist/index.js",
@@ -10,7 +10,7 @@
     "prisma-generator-flavoured-ids": "./dist/bin.js"
   },
   "engines": {
-    "node": ">=14.0"
+    "node": ">=18.0"
   },
   "scripts": {
     "start": "node dist/bin.js",
