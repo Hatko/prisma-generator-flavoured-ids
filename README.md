@@ -90,7 +90,7 @@ const deleteBlogpostsForUser = async (id: UserId) => {
 
 2. This is a dirty approach, as it relies on the generated code. This library has been used for several months and had to be changed significantly based on the changes Prisma made to their client
 
-## Installation
+## Installation and usage
 
 ```sh
 # inside your project's working tree
