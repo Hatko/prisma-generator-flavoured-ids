@@ -1,4 +1,8 @@
-import { generatorHandler, GeneratorOptions } from '@prisma/generator-helper'
+import {
+  DMMF,
+  generatorHandler,
+  GeneratorOptions,
+} from '@prisma/generator-helper'
 import { logger } from '@prisma/internals'
 import { GENERATOR_NAME } from './constants'
 import fs from 'fs'
@@ -17,9 +21,24 @@ const replaceAt = (
   return value
 }
 
+const replaceTypeInCode = (
+  field: string,
+  inputCode: string,
+  targetType: string,
+  modifier: string,
+) => {
+  // Use regular expressions to replace occurrences of the target string in type annotations
+  const regex = new RegExp(
+    `(${field}\\?: ${modifier}<"[^"]+"> \\| )string`,
+    'g',
+  )
+  return inputCode.replace(regex, `$1${targetType}`)
+}
+
 generatorHandler({
   onManifest() {
     logger.info(`${GENERATOR_NAME}:Registered`)
+
     return {
       version,
       defaultOutput: '../generated',
@@ -33,8 +52,6 @@ generatorHandler({
       return
     }
 
-    let resultFileContent = fs.readFileSync(output, 'utf8')
-
     const idType = `
     export interface Flavoring<FlavorT> {
       _type?: FlavorT
@@ -42,24 +59,34 @@ generatorHandler({
     export type Flavor<T, FlavorT> = T & Flavoring<FlavorT>
     `
 
-    resultFileContent = idType + resultFileContent
+    let resultFileContent = idType + fs.readFileSync(output, 'utf8')
 
-    options.dmmf.datamodel.models.forEach(async (model) => {
-      const idField = model.fields.find(
-        (field) => field.name === 'id' && field.isId,
+    options.dmmf.datamodel.models
+      .map((model) => {
+        const idField = model.fields.find(
+          ({ name, isId }) => name === 'id' && isId,
+        )
+
+        return { idField, modelName: model.name }
+      })
+      .filter(
+        (fieldInfo): fieldInfo is { modelName: string; idField: DMMF.Field } =>
+          !!fieldInfo.idField,
       )
+      .forEach(async ({ idField, modelName }) => {
+        const idTypeName = `${modelName}Id`
+        const idType = `\nexport type ${idTypeName} = Flavor<string, '__${modelName}Id'>`
 
-      if (idField) {
-        const idTypeName = `${model.name}Id`
-        const idType = `\nexport type ${idTypeName} = Flavor<string, '__${model.name}Id'>`
-        const originalExport = `export type ${model.name} = `
-
+        //
+        // Add id type above type definition
+        const originalExport = `export type ${modelName} = `
         resultFileContent = resultFileContent.replace(
           originalExport,
           `${idType}\n${originalExport}`,
         )
+        //
 
-        const res = resultFileContent.search(`type ${model.name}Payload<`)
+        const res = resultFileContent.search(`type ${modelName}Payload<`)
         resultFileContent = replaceAt(
           resultFileContent,
           `  ${idField.name}: string`,
@@ -67,6 +94,8 @@ generatorHandler({
           res,
         )
 
+        //
+        // Replace by name (e.g. "userId") in code
         const stronglyTypedName = `${
           idTypeName.charAt(0).toLowerCase() + idTypeName.slice(1)
         }`
@@ -80,57 +109,64 @@ generatorHandler({
           `${stronglyTypedName}?: ${idTypeName}`,
         )
 
-        // projectId?: string | null
-
-        resultFileContent = resultFileContent.replace(
-          new RegExp(
-            `${stronglyTypedName}\\?:\\sStringFilter\\s\\|\\sstring`,
-            'g',
-          ),
-          `${stronglyTypedName}?: StringFilter | ${idTypeName}`,
+        resultFileContent = replaceTypeInCode(
+          stronglyTypedName,
+          resultFileContent,
+          idTypeName,
+          'StringFilter',
         )
-
-        resultFileContent = resultFileContent.replace(
-          new RegExp(
-            `${stronglyTypedName}\\?:\\sStringFieldUpdateOperationsInput\\s\\|\\string`,
-            'g',
-          ),
-          `${stronglyTypedName}?: StringFieldUpdateOperationsInput | ${idTypeName}`,
+        resultFileContent = replaceTypeInCode(
+          stronglyTypedName,
+          resultFileContent,
+          idTypeName,
+          'StringWithAggregatesFilter',
         )
+        resultFileContent = replaceTypeInCode(
+          stronglyTypedName,
+          resultFileContent,
+          idTypeName,
+          'StringFieldUpdateOperationsInput',
+        )
+        //
 
-        const res1 = resultFileContent.search(
-          `export type ${model.name}WhereInput = {`,
+        //
+        // Update where input
+        const whereInput = resultFileContent.search(
+          `export type ${modelName}WhereInput = {`,
         )
         resultFileContent = replaceAt(
           resultFileContent,
-          `  ${idField.name}: StringFilter | string`,
-          `  ${idField.name}: StringFilter | ${idTypeName}`,
-          res1,
+          `${idField.name}: StringFilter<"${modelName}"> | string`,
+          `${idField.name}: StringFilter<"${modelName}"> | ${idTypeName}`,
+          whereInput,
         )
         resultFileContent = replaceAt(
           resultFileContent,
-          `  ${idField.name}?: StringFilter | string`,
-          `  ${idField.name}?: StringFilter | ${idTypeName}`,
-          res1,
+          `${idField.name}?: StringFilter<"${modelName}"> | string`,
+          `${idField.name}?: StringFilter<"${modelName}"> | ${idTypeName}`,
+          whereInput,
         )
+        //
 
-        const res2 = resultFileContent.search(
-          `export type ${model.name}WhereUniqueInput = {`,
+        //
+        // Update where unique input
+        const whereUniqueInput = resultFileContent.search(
+          `export type ${modelName}WhereUniqueInput = Prisma.AtLeast<{`,
         )
         resultFileContent = replaceAt(
           resultFileContent,
           `  ${idField.name}: string`,
           `  ${idField.name}: ${idTypeName}`,
-          res2,
+          whereUniqueInput,
         )
         resultFileContent = replaceAt(
           resultFileContent,
           `  ${idField.name}?: string`,
           `  ${idField.name}?: ${idTypeName}`,
-          res2,
+          whereUniqueInput,
         )
-      }
-    })
+        //
+      })
 
     fs.writeFileSync(output, resultFileContent)
   },
