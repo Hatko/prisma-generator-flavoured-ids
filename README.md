@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/prisma-generator-flavoured-ids.svg)](https://www.npmjs.com/package/prisma-generator-flavoured-ids)
 
-This generator intends to mitigate the issue with weakly-typed ID's on Prisma Schema entities.
+This generator intends to mitigate the issue with weakly-typed IDs on Prisma Schema entities.
 
 ## Motivation
 
@@ -28,7 +28,7 @@ model Blogpost {
 }
 ```
 
-will generate the model and methods related to user with `id` being of type `string`. This is not ideal, as it is easy to pass a wrong type of ID to the generated methods, e.g.:
+will generate the model and methods related to user with `id` being of type `string`. This is not ideal, as it is easy to pass the wrong type of ID to the generated methods, e.g.:
 
 ```typescript
 // The called of the method passes `userId`
@@ -42,34 +42,36 @@ const deleteBlogpostsForUser = async (id: string) => {
 
 [A related Prisma issue](https://github.com/prisma/prisma/issues/9853)
 
-To resolve the problem, the generator will overwrite the resulting schema with the following:
+## Solution
+
+To resolve the problem, the generator will overwrite the resulting types with the following:
 
 1. Add a branded type for each model ID, e.g.
 
-```typescript
-export interface Flavoring<FlavorT> {
-  _type?: FlavorT
-}
-export type Flavor<T, FlavorT> = T & Flavoring<FlavorT>
-
-export type UserId = Flavor<string, 'UserId'>
-```
+  ```typescript
+  export interface Flavoring<FlavorT> {
+    _type?: FlavorT
+  }
+  export type Flavor<T, FlavorT> = T & Flavoring<FlavorT>
+  
+  export type UserId = Flavor<string, 'UserId'>
+  ```
 
 2. Change the methods to use the branded type, e.g.
 
-```typescript
-export type UserWhereUniqueInput = Prisma.AtLeast<{
-  id?: UserId
-  /// ...
-}>
-
-export type UserWhereInput = Prisma.AtLeast<{
-  id?: StringFilter<"User"> | UserId
-  /// ...
-}>
-
-// and others
-```
+  ```typescript
+  export type UserWhereUniqueInput = Prisma.AtLeast<{
+    id?: UserId
+    /// ...
+  }>
+  
+  export type UserWhereInput = Prisma.AtLeast<{
+    id?: StringFilter<"User"> | UserId
+    /// ...
+  }>
+  
+  // and others
+  ```
 
 In result, the example from above will be prevented by typescript:
 
@@ -86,9 +88,9 @@ const deleteBlogpostsForUser = async (id: UserId) => {
 
 ### Disclaimer
 
-1. Ideally, Prisma needs to add a native support for branded types. If you find this solution useful, please up-vote the [Prisma issue](https://github.com/prisma/prisma/issues/9853)
+1. Ideally, Prisma needs to add native support for branded types. If you find this solution useful, please up-vote the [Prisma issue](https://github.com/prisma/prisma/issues/9853)
 
-2. This is a dirty approach, as it relies on the generated code. This library has been used for several months and had to be changed significantly based on the changes Prisma made to their client
+2. This is a dirty approach, as it relies on the generated code. This library has been used for several months and had to be changed significantly based on the changes Prisma made to its client
 
 ## Installation and usage
 
