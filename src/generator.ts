@@ -77,13 +77,16 @@ generatorHandler({
         )
         //
 
-        const res = resultFileContent.search(`type ${modelName}Payload<`)
+        // 
+        // Update Model ID type
+        const res = resultFileContent.search(`type \\$${modelName}Payload<`);
         resultFileContent = replaceAt(
           resultFileContent,
           `  ${idField.name}: string`,
           `  ${idField.name}: ${idTypeName}`,
           res,
         )
+        //
 
         //
         // Replace by name (e.g. "userId") in code
