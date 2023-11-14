@@ -17,8 +17,7 @@
     "dev": "npx tsc -w",
     "build": "npx tsc",
     "prepack": "pnpm build",
-    "bump": "npx npm-check-updates -u --deep && pnpm i && pnpm upgrade",
-    "test": "jest"
+    "bump": "npx npm-check-updates -u --deep && pnpm i && pnpm upgrade"
   },
   "dependencies": {
     "@prisma/generator-helper": "^5.6.0",
@@ -29,7 +28,6 @@
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
-    "@types/prettier": "^2.7.3",
     "prisma": "^5.6.0",
     "typescript": "^5.2.2"
   },
