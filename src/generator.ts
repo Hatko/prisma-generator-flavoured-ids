@@ -21,18 +21,9 @@ const replaceAt = (
   return value
 }
 
-const replaceTypeInCode = (
-  field: string,
-  inputCode: string,
-  targetType: string,
-  modifier: string,
-) => {
-  // Use regular expressions to replace occurrences of the target string in type annotations
-  const regex = new RegExp(
-    `(${field}\\?: ${modifier}<"[^"]+"> \\| )string`,
-    'g',
-  )
-  return inputCode.replace(regex, `$1${targetType}`)
+const replaceType = (inputString: string, key: string, newType: string) => {
+  const regex = new RegExp(`${key}\\s*\\?:\\s*([^|]+)\\s*\\|\\s*string`, 'g')
+  return inputString.replace(regex, `${key}?: $1 | ${newType}`)
 }
 
 generatorHandler({
@@ -109,23 +100,10 @@ generatorHandler({
           `${stronglyTypedName}?: ${idTypeName}`,
         )
 
-        resultFileContent = replaceTypeInCode(
-          stronglyTypedName,
+        resultFileContent = replaceType(
           resultFileContent,
-          idTypeName,
-          'StringFilter',
-        )
-        resultFileContent = replaceTypeInCode(
           stronglyTypedName,
-          resultFileContent,
           idTypeName,
-          'StringWithAggregatesFilter',
-        )
-        resultFileContent = replaceTypeInCode(
-          stronglyTypedName,
-          resultFileContent,
-          idTypeName,
-          'StringFieldUpdateOperationsInput',
         )
         //
 
