@@ -22,7 +22,6 @@ model Blogpost {
 
   content String
 
-  // Empty Author means KGG authored the blogpost
   Author   User?   @relation(fields: [authorId], references: [id])
   authorId String?
 }
