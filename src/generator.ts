@@ -5,7 +5,7 @@ import {
 } from '@prisma/generator-helper'
 import { logger } from '@prisma/internals'
 import { GENERATOR_NAME } from './constants'
-import fs from 'fs'
+import fs from 'node:fs'
 
 const { version } = require('../package.json')
 
@@ -77,9 +77,9 @@ generatorHandler({
         )
         //
 
-        // 
+        //
         // Update Model ID type
-        const res = resultFileContent.search(`type \\$${modelName}Payload<`);
+        const res = resultFileContent.search(`type \\$${modelName}Payload<`)
         resultFileContent = replaceAt(
           resultFileContent,
           `  ${idField.name}: string`,

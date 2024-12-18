@@ -1,16 +1,16 @@
 {
   "name": "prisma-generator-flavoured-ids",
   "author": "Vladyslav Zavalykhatko",
-  "description": "Provide a description about your generator",
+  "description": "Generate strongly typed IDs for Prisma Client",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "license": "MIT",
   "bin": {
     "prisma-generator-flavoured-ids": "./dist/bin.js"
   },
   "engines": {
-    "node": ">=18.0"
+    "node": ">=22.0"
   },
   "scripts": {
     "start": "node dist/bin.js",
@@ -20,16 +20,17 @@
     "bump": "npx npm-check-updates -u --deep && pnpm i && pnpm upgrade"
   },
   "dependencies": {
-    "@prisma/generator-helper": "^5.6.0",
-    "@prisma/internals": "^5.6.0"
+    "@prisma/generator-helper": "^6.1.0",
+    "@prisma/internals": "^6.1.0"
   },
   "peerDependencies": {
     "@prisma/client": "^5.5.2"
   },
   "devDependencies": {
-    "@types/node": "^20.9.0",
-    "prisma": "^5.6.0",
-    "typescript": "^5.2.2"
+    "@biomejs/biome": "1.9.4",
+    "@types/node": "^22.10.2",
+    "prisma": "^6.1.0",
+    "typescript": "^5.7.2"
   },
   "homepage": "https://github.com/Hatko/prisma-generator-flavoured-ids",
   "repository": {
@@ -40,5 +41,8 @@
     "prisma",
     "prisma2",
     "generator"
+  ],
+  "trustedDependencies": [
+    "@biomejs/biome"
   ]
 }
