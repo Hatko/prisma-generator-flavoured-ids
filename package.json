@@ -24,7 +24,7 @@
     "@prisma/internals": "^6.1.0"
   },
   "peerDependencies": {
-    "@prisma/client": "^5.5.2"
+    "@prisma/client": "^6.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
