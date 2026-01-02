@@ -52,8 +52,9 @@ To resolve the problem, the generator will overwrite the resulting types with th
     _type?: FlavorT
   }
   export type Flavor<T, FlavorT> = T & Flavoring<FlavorT>
-  
+
   export type UserId = Flavor<string, 'UserId'>
+  export type BlogpostId = Flavor<string, 'BlogpostId'>
   ```
 
 2. Change the methods to use the branded type, e.g.
@@ -63,14 +64,32 @@ To resolve the problem, the generator will overwrite the resulting types with th
     id?: UserId
     /// ...
   }>
-  
+
   export type UserWhereInput = Prisma.AtLeast<{
     id?: StringFilter<"User"> | UserId
     /// ...
   }>
-  
+
   // and others
   ```
+
+3. **Automatically handle foreign key fields** - The generator also replaces foreign key field types with the appropriate branded types:
+
+  ```typescript
+  // Before
+  export type BlogpostPayload = {
+    id: BlogpostId
+    authorId: string | null  // ❌ weakly typed
+  }
+
+  // After
+  export type BlogpostPayload = {
+    id: BlogpostId
+    authorId: UserId | null  // ✅ strongly typed
+  }
+  ```
+
+  This applies to all foreign key fields that reference models with `@id` fields.
 
 In result, the example from above will be prevented by typescript:
 
@@ -104,4 +123,33 @@ generator flavoured_ids {
   // A path to the generated client - can vary on your setup
   output   = "node_modules/.prisma/client/index.d.ts"
 }
+```
+
+## Configuration Options
+
+### `strictFlavours`
+
+By default, flavoured types accept any string value (backward compatible behavior). You can enable strict mode to require exact branded types:
+
+```prisma
+generator flavoured_ids {
+  provider       = "prisma-generator-flavoured-ids"
+  output         = "node_modules/.prisma/client/index.d.ts"
+  strictFlavours = "true"
+}
+```
+
+**Default behavior (strictFlavours = false):**
+```typescript
+// Any string is accepted
+const userId: UserId = "some-string" // ✅ OK
+const anotherUserId: UserId = blogpostId // ❌ Error: different flavour
+```
+
+**Strict mode (strictFlavours = true):**
+```typescript
+// Only properly branded types are accepted
+const userId: UserId = "some-string" // ❌ Error: string is not assignable
+const userId: UserId = "some-string" as UserId // ✅ OK: explicit branding required
+const anotherUserId: UserId = blogpostId // ❌ Error: different flavour
 ```
