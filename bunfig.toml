@@ -1,4 +1,2 @@
-[install.lockfile]
-print = "yarn"
 [install]
 exact = true
