@@ -136,6 +136,192 @@ generatorHandler({
         )
         //
 
+
+        //
+        // Update CreateInput types for model's own id field
+        const createInputPatterns = [
+          `${modelName}CreateInput`,
+          `${modelName}UncheckedCreateInput`,
+        ]
+        createInputPatterns.forEach((inputType) => {
+          const inputStart = resultFileContent.search(
+            new RegExp(`export type ${inputType} = \\{`),
+          )
+          if (inputStart === -1) return
+
+          // Find the end of this type definition (look for closing brace at same indentation level)
+          const typeContentStart = resultFileContent.indexOf('{', inputStart) + 1
+          let braceCount = 1
+          let typeEnd = typeContentStart
+          for (let i = typeContentStart; i < resultFileContent.length; i++) {
+            if (resultFileContent[i] === '{') braceCount++
+            if (resultFileContent[i] === '}') {
+              braceCount--
+              if (braceCount === 0) {
+                typeEnd = i
+                break
+              }
+            }
+          }
+
+          // Extract and modify only this type's content
+          const typeContent = resultFileContent.slice(
+            typeContentStart,
+            typeEnd,
+          )
+          const updatedTypeContent = typeContent
+            .replace(
+              new RegExp(`(\\s+)${idField.name}\\?:\\s*string\\b`, 'g'),
+              `$1${idField.name}?: ${idTypeName}`,
+            )
+            .replace(
+              new RegExp(`(\\s+)${idField.name}:\\s*string\\b`, 'g'),
+              `$1${idField.name}: ${idTypeName}`,
+            )
+
+          // Replace in the full content
+          resultFileContent =
+            resultFileContent.slice(0, typeContentStart) +
+            updatedTypeContent +
+            resultFileContent.slice(typeEnd)
+        })
+        //
+
+        //
+        // Update CreateWithout* and UncheckedCreateWithout* types
+        // Use regex to find all variants (e.g., CreateWithoutFundInput, CreateWithoutUserInput)
+        const createWithoutRegex = new RegExp(
+          `export type ${modelName}(?:Unchecked)?CreateWithout\\w+Input = \\{`,
+          'g',
+        )
+        let match
+        while ((match = createWithoutRegex.exec(resultFileContent)) !== null) {
+          const typeContentStart =
+            resultFileContent.indexOf('{', match.index) + 1
+          let braceCount = 1
+          let typeEnd = typeContentStart
+          for (let i = typeContentStart; i < resultFileContent.length; i++) {
+            if (resultFileContent[i] === '{') braceCount++
+            if (resultFileContent[i] === '}') {
+              braceCount--
+              if (braceCount === 0) {
+                typeEnd = i
+                break
+              }
+            }
+          }
+
+          const typeContent = resultFileContent.slice(
+            typeContentStart,
+            typeEnd,
+          )
+          const updatedTypeContent = typeContent
+            .replace(
+              new RegExp(`(\\s+)${idField.name}\\?:\\s*string\\b`, 'g'),
+              `$1${idField.name}?: ${idTypeName}`,
+            )
+            .replace(
+              new RegExp(`(\\s+)${idField.name}:\\s*string\\b`, 'g'),
+              `$1${idField.name}: ${idTypeName}`,
+            )
+
+          resultFileContent =
+            resultFileContent.slice(0, typeContentStart) +
+            updatedTypeContent +
+            resultFileContent.slice(typeEnd)
+        }
+        //
+
+        //
+        // Update UpdateInput types for model's own id field
+        const updateInputPatterns = [
+          `${modelName}UpdateInput`,
+          `${modelName}UncheckedUpdateInput`,
+        ]
+        updateInputPatterns.forEach((inputType) => {
+          const inputStart = resultFileContent.search(
+            new RegExp(`export type ${inputType} = \\{`),
+          )
+          if (inputStart === -1) return
+
+          const typeContentStart = resultFileContent.indexOf('{', inputStart) + 1
+          let braceCount = 1
+          let typeEnd = typeContentStart
+          for (let i = typeContentStart; i < resultFileContent.length; i++) {
+            if (resultFileContent[i] === '{') braceCount++
+            if (resultFileContent[i] === '}') {
+              braceCount--
+              if (braceCount === 0) {
+                typeEnd = i
+                break
+              }
+            }
+          }
+
+          const typeContent = resultFileContent.slice(
+            typeContentStart,
+            typeEnd,
+          )
+          const updatedTypeContent = typeContent
+            .replace(
+              new RegExp(`(\\s+)${idField.name}\\?:\\s*string\\b`, 'g'),
+              `$1${idField.name}?: ${idTypeName}`,
+            )
+            .replace(
+              new RegExp(`(\\s+)${idField.name}:\\s*string\\b`, 'g'),
+              `$1${idField.name}: ${idTypeName}`,
+            )
+
+          resultFileContent =
+            resultFileContent.slice(0, typeContentStart) +
+            updatedTypeContent +
+            resultFileContent.slice(typeEnd)
+        })
+        //
+
+        //
+        // Update UpdateWithout* and UncheckedUpdateWithout* types
+        const updateWithoutRegex = new RegExp(
+          `export type ${modelName}(?:Unchecked)?UpdateWithout\\w+Input = \\{`,
+          'g',
+        )
+        while ((match = updateWithoutRegex.exec(resultFileContent)) !== null) {
+          const typeContentStart =
+            resultFileContent.indexOf('{', match.index) + 1
+          let braceCount = 1
+          let typeEnd = typeContentStart
+          for (let i = typeContentStart; i < resultFileContent.length; i++) {
+            if (resultFileContent[i] === '{') braceCount++
+            if (resultFileContent[i] === '}') {
+              braceCount--
+              if (braceCount === 0) {
+                typeEnd = i
+                break
+              }
+            }
+          }
+
+          const typeContent = resultFileContent.slice(
+            typeContentStart,
+            typeEnd,
+          )
+          const updatedTypeContent = typeContent
+            .replace(
+              new RegExp(`(\\s+)${idField.name}\\?:\\s*string\\b`, 'g'),
+              `$1${idField.name}?: ${idTypeName}`,
+            )
+            .replace(
+              new RegExp(`(\\s+)${idField.name}:\\s*string\\b`, 'g'),
+              `$1${idField.name}: ${idTypeName}`,
+            )
+
+          resultFileContent =
+            resultFileContent.slice(0, typeContentStart) +
+            updatedTypeContent +
+            resultFileContent.slice(typeEnd)
+        }
+        //
+
         //
         // Update where input
         const whereInput = resultFileContent.search(

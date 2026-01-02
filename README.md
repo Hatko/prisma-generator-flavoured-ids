@@ -91,6 +91,34 @@ To resolve the problem, the generator will overwrite the resulting types with th
 
   This applies to all foreign key fields that reference models with `@id` fields.
 
+4. **Strongly type input types** - The generator updates all Prisma input types to use branded IDs:
+
+  ```typescript
+  // Before
+  export type UserCreateInput = {
+    id?: string
+    blogposts?: BlogpostCreateNestedManyWithoutAuthorInput
+  }
+
+  export type BlogpostCreateWithoutAuthorInput = {
+    id?: string
+    authorId?: string | null
+  }
+
+  // After
+  export type UserCreateInput = {
+    id?: UserId  // ✅ strongly typed
+    blogposts?: BlogpostCreateNestedManyWithoutAuthorInput
+  }
+
+  export type BlogpostCreateWithoutAuthorInput = {
+    id?: BlogpostId  // ✅ strongly typed
+    authorId?: UserId | null  // ✅ strongly typed foreign key
+  }
+  ```
+
+  This applies to all input types including `CreateInput`, `UpdateInput`, `CreateWithout*Input`, `UpdateWithout*Input`, `UncheckedCreateInput`, `UncheckedUpdateInput`, and their variants.
+
 In result, the example from above will be prevented by typescript:
 
 ```typescript
