@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "ES2018",
-    "module": "commonjs",
     "lib": ["esnext"],
     "strict": true,
     "strictPropertyInitialization": false,
@@ -12,8 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "removeComments": true,
     "sourceMap": true,
-    "baseUrl": ".",
-    "moduleResolution": "Node",
+    "moduleResolution": "node16",
+    "module": "node16",
     "outDir": "./dist",
     "rootDir": "./src",
     "newLine": "lf"
