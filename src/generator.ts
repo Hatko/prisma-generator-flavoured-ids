@@ -375,8 +375,18 @@ function processMultiFile(args: {
 }): void {
   if (fs.existsSync(args.clientFile)) {
     const original = fs.readFileSync(args.clientFile, 'utf8')
-    const patched = replaceWithMap(args.idTypeHeader + original, args.patterns)
-    fs.writeFileSync(args.clientFile, patched)
+    // Insert the Flavor types just before the first `import` so the generator's
+    // top header (including `// @ts-nocheck`) stays at the top of the file.
+    // Inserting at line 0 would push `@ts-nocheck` out of the first comment
+    // block and TypeScript would stop suppressing diagnostics in the file.
+    const firstImport = original.search(/^import /m)
+    const withHeader =
+      firstImport === -1
+        ? args.idTypeHeader + original
+        : original.slice(0, firstImport) +
+          args.idTypeHeader +
+          original.slice(firstImport)
+    fs.writeFileSync(args.clientFile, replaceWithMap(withHeader, args.patterns))
   }
 
   if (!fs.existsSync(args.modelsDir)) return
